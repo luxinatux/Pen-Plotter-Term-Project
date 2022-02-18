@@ -21,6 +21,6 @@ Instead of dropping the pen to write, we will be raising the edge of the platfor
 ## **Drawings**
 ![Time_Constant](top_down.jpg)
 ![Time_Constant](pen_holder.jpg)
-![Time_Constant](sled.jpg)
+![Time_Constant](Sled.jpg)
 ![Time_Constant](base.jpg)
 ![Time_Constant](wheel_track.jpg)
