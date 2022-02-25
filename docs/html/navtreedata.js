@@ -30,10 +30,8 @@ var NAVTREE =
       [ "Software Design", "page_1.html#Sftw_ds", [
         [ "Task Diagram", "page_1.html#tsk_d", null ],
         [ "Task Diagram", "page_1.html#autotoc_md0", null ],
-        [ "Task Diagram", "page_1.html#FSM_dr", null ],
-        [ "Drawing Task", "page_1.html#autotoc_md1", null ],
-        [ "Task Diagram", "page_1.html#FSM_c", null ],
-        [ "Controller Task", "page_1.html#autotoc_md2", null ]
+        [ "Drawing Task", "page_1.html#FSM_dr", null ],
+        [ "Controller Task", "page_1.html#FSM_c", null ]
       ] ]
     ] ],
     [ "Classes", "annotated.html", [
