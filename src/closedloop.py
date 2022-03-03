@@ -32,7 +32,7 @@ class ClosedLoop:
         
     
         
-    def update(self, Reference_Vector, Measured_Vector, Time):
+    def update(self, Reference_Vector, Measured_Vector):
         '''!
             @brief                           Updates the error value of the proportional controller
             @details                         Updates and calculates the error value of the 
@@ -57,8 +57,6 @@ class ClosedLoop:
         elif self.duty <= self.min_lim:
             self.duty = self.min_lim 
             
-        self.position.append(self.Measured_Vector)
-        self.time.append(Time)
         
         return self.duty
     

@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar  2 20:00:23 2022
+
+@author: dylanruiz
+"""
+import gc
+import pyb
+import cotask
+import time
+import task_share
+import closedloop
+import encoder_Ruiz_Martos
+import motor_Ruiz_Martos
+
+
+def task_Encoder1():
+    """!
+    Task which initializes and updates encoder 1. 
+    Continuously writes the encoder position to the shared variable.
+    """
+    in1_enc = pyb.Pin(pyb.Pin.cpu.B6)
+    in2_enc = pyb.Pin(pyb.Pin.cpu.B7)
+    encoder1 = encoder_Ruiz_Martos.Encoder(in1_enc,in2_enc,4) # motor in A
+    enc_state = 0
+    
+    while True:
+        
+        if Zero_Flag_Elbow.get() == 1:
+            enc_state = 2
+        if Zero_Flag_Belt.get() == 1:
+            enc_state = 1
+            
+        if enc_state == 0:
+            encoder1.update()
+            encoder2.update()
+            Belt_position.put(encoder1.get_position())
+            Elbow_position.put(encoder2.get_position())
+            yield (0)
+        
+        elif enc_state == 1:
+            encoder1.set_position(0)
+            Belt_position.put(encoder1.get_position())
+            enc_state = 0
+            yield(0)
+            
+        elif enc_state == 2:
+            encoder2.set_position(0)
+            Elbow_position.put(encoder2.get_position())
+            enc_state = 0
+            yield(0)
+            
+        else:
+            yield(0)
+            
+def task_controller():
+    """!
+    Task which initializes motor 1. 
+    Controller object updates the duty cycle to the motor and allows closed loop proportional control.
+    Continuously prints the position and time for the data to be processed.
+    """
+     # CREATING MOTOR AND ENCODER OBJECTS TO BE USED
+  
+    Gain = 0.5
+    Closed_loop = closedloop.ClosedLoop(Gain, 0)
+    time_now = 0
+    time_start = time.ticks_ms()
+    controller_state = 0
+    Execute_flag = 0
+    
+    while True:
+        
+        
+        if Zero_Flag_Elbow.get() == 1:
+            controller_state = 2
+        if Zero_Flag_Belt.get() == 1:
+            controller_state = 1
+            
+        if Zero_Flag_Belt.get() and Zero_Flag_Belt.get() == 0:
+            controller_state = 3
+        
+        if Execute_flag == 1:
+            controller_state = 4
+            
+        if controller_state == 0:
+            Duty_cycle_elbow.put(-50)
+            Duty_cycle_belt.put(-50)
+            yield(0)
+        
+        elif controller_state == 1:
+            Duty_cycle_belt.put(0)
+            yield(0)
+            
+        elif controller_state == 2:
+            Duty_cycle_elbow.put(0)
+            yield(0)
+        
+        elif controller_state == 3:
+            Duty_cycle_elbow.put(0)
+            Duty_cycle_belt.put(0)
+            Execute_flag = 1
+            
+            yield(0)
+            
+        elif controller_state == 4:
+            Duty_cycle_elbow.put(Closed_loop.update(Elbow_position_target.get(),Elbow_position.get()))
+            Duty_cycle_belt.put(Closed_loop.update(Belt_position_target.get(),Belt_position.get()))
+            ## Enter Solenoid Actuation here
+            if abs(Elbow_position_target.get()-Elbow_position.get()) <=20 and abs(Belt_position_target.get()-Belt_position.get()) <= 20:
+                Next_Point_Flag.put(1)
+            if Terminate_Flag.get() == 1:
+                Execute_flag = 0
+                controller_state = 0
+            yield(0)
+            
+    def task_motor():
+        #initialize both motors
+        enableA = pyb.Pin(pyb.Pin.cpu.A10, pyb.Pin.OUT_PP)
+        in1_mot = pyb.Pin(pyb.Pin.cpu.B4)
+        in2_mot = pyb.Pin(pyb.Pin.cpu.B5)
+        motor_belt = motor_Ruiz_Martos.Motor(enableA,in1_mot,in2_mot,3) # motor in A
+        motor_belt.enable()
+        
+        enableB = pyb.Pin(pyb.Pin.cpu.C1, pyb.Pin.OUT_PP)
+        in1_motB = pyb.Pin(pyb.Pin.cpu.A0)
+        in2_motB = pyb.Pin(pyb.Pin.cpu.A1)
+        motor_elbow = motor_Ruiz_Martos.Motor(enableB,in1_motB,in2_motB,5) # motor in B
+        motor_elbow.enable()
+        
+        while True:
+            
+            motor_belt.set_duty(Duty_cycle_belt.get())
+            motor_elbow.set_duty(Duty_cycle_elbow.get())
+            #Solenoid Activation here
+            yield(0)
+        
+        
+    
+    
+    
+if __name__ == "__main__":
+
+    ## instantiate shared and queued objects
+    Elbow_position = task_share.Share('i',thread_protect = False, name = "Elbow Position")
+    Belt_position = task_share.Share('i',thread_protect = False, name = "Belt Position")
+    
+    Elbow_position_target = task_share.Share('i',thread_protect = False, name = "Elbow Target Position")
+    Belt_position_target = task_share.Share('i',thread_protect = False, name = "Belt Target Position")
+    Solenoid_activation = task_share.Share('i',thread_protect = False, name = "Solenoid Activation")
+    
+    Terminate_Flag = task_share.Share('i',thread_protect = False, name = "Terminate Flag")
+    Next_Point_Flag = task_share.Share('i',thread_protect = False, name = "Next Point Flag")
+    
+    Duty_cycle_elbow = task_share.Share('i',thread_protect = False, name = "Duty Cycle Elbow")
+    Duty_cycle_belt = task_share.Share('i',thread_protect = False, name = "Duty Cycle Belt")
+    
+    Zero_Flag_Elbow = task_share.Share('i',thread_protect = False, name = "Set Elbow zero flag")
+    Zero_Flag_Belt = task_share.Share('i',thread_protect = False, name = "Set Belt zero flag")
+    
+    
+    #Create Task Objects
+    task_Draw_calc = cotask.Task(task_Drawing(), name = 'Task_Drawing_Calcs', priority = 0,
+                        period = 100, profile = True, trace = False)
+    
+    task_controller = cotask.Task(task_controller(), name = 'Task_Controller', priority = 1,
+                        period = 10, profile = True, trace = False)
+    
+    task_motor = cotask.Task(task_motor(), name = 'Task_motor', priority = 1,
+                        period = 10, profile = True, trace = False)
+    
+    task_encoder = cotask.Task(task_encoder(), name = 'Task_Encoder', priority = 2,
+                        period = 1, profile = True, trace = False)
+    
+
+    
+
+    
