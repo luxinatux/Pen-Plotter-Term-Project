@@ -13,7 +13,7 @@ import task_share
 import closedloop
 import encoder_Ruiz_Martos
 import motor_Ruiz_Martos
-
+import math
 
 def task_Encoder1():
     """!
@@ -134,8 +134,175 @@ def task_controller():
             motor_elbow.set_duty(Duty_cycle_elbow.get())
             #Solenoid Activation here
             yield(0)
+    
+    def task_Draw_calc():
+        x_1 = 10 # x-Length from rotating center to paper origin [in]
+        y_1 = 10 # y-Length from rotating center to paper origin [in]
+        r = (x_1^2+y_1^2)^(1/2) # Length from rotating center to paper origin [in]
+        Elbow_Ratio = 100 #Ticks/Radian
+        Belt_Ratio = 20 #Ticks/in
         
-        
+        draw_state = 0
+        ser = pyb.USB_VCP()
+        my_str = ''
+        print("Enter File Name")
+        while True:
+            if draw_state == 0:
+                x_list = []
+                y_list = []
+                z_list = []
+                x_coordinate = []
+                y_coordinate = []
+                z_coordinate = []
+                Arm_angle = []
+                Belt_Distance = []
+                if ser.any():
+                    char_in = ser.read(1).decode()
+                    
+                             
+                    if char_in == '\x7F':
+                        if my_str == '':
+                            my_str = my_str
+                            ser.write(char_in)
+                             
+                        else:
+                            a = len(my_str)
+                            b = a-1
+                            my_str = my_str[:b]
+                            ser.write(char_in)
+                             
+                    elif char_in == '\r' or char_in == '\n':
+                         draw_state = 1
+                         
+                    else:
+                        my_str += char_in
+                        ser.write(char_in)
+                    yield(0)
+                        
+            if draw_state == 1:
+                try:
+                    file = open("{:}".format(my_str),"r")
+                except:
+                    draw_state = 0
+                    print("File Not Found! Enter Another File Name")
+                else: 
+                    draw_state = 2
+                yield(0)
+                        
+            if draw_state == 2:
+                up = "1"
+                down = "0"
+                file = open("{:}".format(my_str),"r")
+                for line in file:
+
+                    state = 0
+                    x=line.split(";")
+                    
+                    for i in range(0,len(x)):
+                        state = 0
+                        Pen_up = -1
+                        Pen_down = -1
+                        try: 
+                            float(x[i]) 
+                        except:
+                            N_1 = False
+                        else:
+                            N_1 = True
+                            
+                        if N_1 == False:
+                            Pen_up = x[i].find('PU')
+                            Pen_down = x[i].find('PD')
+                            
+                        if Pen_up != -1:
+                    
+                            x_2 = x[i].split(",")
+                            try:
+                                test = x_2[1]
+                            except:
+                                state = 1
+                                
+                            if state == 0:
+                                
+                                x_3 = x_2[0].strip('PU')
+                                x_list.append(x_3)
+                                y_list.append(x_2[1])
+                                z_list.append(up)
+                                for n in range(3,len(x_2),2):
+                                    x_list.append(x_2[n-1])
+                                    y_list.append(x_2[n])
+                                    z_list.append(up)
+                                
+                           
+                            
+                        if Pen_down != -1:
+                    
+                            x_2 = x[i].split(",")
+                            try:
+                                test = x_2[1]
+                            except:
+                                state = 1
+                                
+                            if state == 0:
+                                
+                                x_3 = x_2[0].strip('PU')
+                                x_list.append(x_3)
+                                y_list.append(x_2[1])
+                                z_list.append(down)
+                                for n in range(3,len(x_2),2):
+                                    x_list.append(x_2[n-1])
+                                    y_list.append(x_2[n])
+                                    z_list.append(down)
+                draw_state = 3
+                yield(0)
+            if draw_state == 3:
+                for i in range(len(x_list)):
+                    x_coordinate.append(float(x_list[i]))
+                    y_coordinate.append(float(x_list[i]))
+                    z_coordinate.append(z_list[i])
+                draw_state = 4
+                yield(0)
+            
+            if draw_state == 4:
+                for i in range(len(x_coordinate)):
+                    Hyp = (x_coordinate[i]^2+y_coordinate[i]^2)^(1/2)
+                    Theta_1 = math.arctan(y_coordinate[i]/x_coordinate[i])
+                    Theta_2 = math.arctan(y_1/x_1)
+                    Theta_3 = math.arctan(Hyp*math.sin(Theta_1+Theta_2)/(r-(Hyp*math.cos(Theta_2+Theta_1))))
+                    b = math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
+                    Arm_angle.append(Theta_3*Elbow_Ratio)
+                    Belt_Distance.append(b*Belt_Ratio)
+                draw_state = 5
+                point = 0
+                yield(0)
+                    
+            if draw_state == 5:
+                
+                
+                if Next_Point_Flag.get() == 1:
+                    try:
+                        Elbow_position_target.put(Arm_angle[point])
+                        Belt_position_target.put(Belt_Distance[point])
+                        Solenoid_activation.put(z_coordinate[point])
+                    except:
+                        Terminate_Flag.put(1)
+                        draw_state = 0
+                    draw_state = 6
+                yield(0)
+                
+            if draw_state == 6:
+                
+                if Next_Point_Flag.get() == 1:
+                    draw_state = 5
+                yield(0)
+                
+                    
+                    
+                    
+                    
+                    
+                
+                            
+                
     
     
     
@@ -161,7 +328,7 @@ if __name__ == "__main__":
     
     #Create Task Objects
     task_Draw_calc = cotask.Task(task_Drawing(), name = 'Task_Drawing_Calcs', priority = 0,
-                        period = 100, profile = True, trace = False)
+                        period = 50, profile = True, trace = False)
     
     task_controller = cotask.Task(task_controller(), name = 'Task_Controller', priority = 1,
                         period = 10, profile = True, trace = False)
