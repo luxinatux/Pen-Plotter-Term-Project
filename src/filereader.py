@@ -6,7 +6,7 @@ Created on Sun Mar  6 17:40:23 2022
 @author: dylanruiz
 """
 
-file = open("drawing.hpgl","r")
+file = open("Test_Drawing.hpgl","r")
 x_list = []
 y_list = []
 z_list = []
@@ -68,7 +68,7 @@ for line in file:
                 
             if state == 0:
                 
-                x_3 = x_2[0].strip('PU')
+                x_3 = x_2[0].strip('PD')
                 x_list.append(x_3)
                 y_list.append(x_2[1])
                 z_list.append(down)
