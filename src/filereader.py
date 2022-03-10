@@ -64,56 +64,70 @@ while True:
                  state = 0
                  Pen_up = -1
                  Pen_down = -1
-                 try: 
-                     float(x[i]) 
-                 except:
-                     N_1 = False
-                 else:
-                     N_1 = True
+                 x_2 = x[i].split(",")
+                 z_value = 0
+                 for n in range(0,len(x_2),2):
                      
-                 if N_1 == False:
-                     Pen_up = x[i].find('PU')
-                     Pen_down = x[i].find('PD')
-                     
-                 if Pen_up != -1:
-             
-                     x_2 = x[i].split(",")
-                     try:
-                         test = x_2[1]
+                     try: 
+                         float(x_2[n]) 
                      except:
-                         state = 1
+                         N_1 = False
+                     else:
+                         N_1 = True
                          
-                     if state == 0:
+                     if N_1 == False:
+                         Pen_up = x_2[n].find('PU')
+                         Pen_down = x_2[n].find('PD')
                          
-                         x_3 = x_2[0].strip('PU')
-                         x_list.append(x_3)
-                         y_list.append(x_2[1])
-                         z_list.append(up)
-                         for n in range(3,len(x_2),2):
-                             x_list.append(x_2[n-1])
-                             y_list.append(x_2[n])
-                             z_list.append(up)
+                         if Pen_up != -1:
+                     
+        
+                              try:
+                                  test = x_2[1]
+                              except:
+                                  state = 1
+                                
+                              if state == 0:
+                                
+                                    x_3 = x_2[0].strip('PU')
+                                    x_list.append(x_3)
+                                    y_list.append(x_2[1])
+                                    z_list.append(up)
+                              
+                        
                          
+                         if Pen_down != -1:
+                     
+                
+                              try:
+                                  test = x_2[1]
+                              except:
+                                  state = 1
+                                 
+                              if state == 0:
+                                 
+                                 x_3 = x_2[0].strip('PD')
+                                 x_list.append(x_3)
+                                 y_list.append(x_2[1])
+                                 z_list.append(down)
+                              
+                                 
+                     if N_1 == True:
+                        z_value = z_list[len(z_list)-1]
+                        # try:
+                        #     test = x_2[1]
+                        # except:
+                        #     state = 1
+                            
+                        if state == 0:
+                            x_list.append(x_2[n])
+                            y_list.append(x_2[n+1])
+                            z_list.append(z_value)
+                          
+                        
                     
-                     
-                 if Pen_down != -1:
-             
-                     x_2 = x[i].split(",")
-                     try:
-                         test = x_2[1]
-                     except:
-                         state = 1
-                         
-                     if state == 0:
-                         
-                         x_3 = x_2[0].strip('PD')
-                         x_list.append(x_3)
-                         y_list.append(x_2[1])
-                         z_list.append(down)
-                         for n in range(3,len(x_2),2):
-                             x_list.append(x_2[n-1])
-                             y_list.append(x_2[n])
-                             z_list.append(down)
+                    
+                    
          draw_state = 3
      
          
