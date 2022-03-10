@@ -33,7 +33,7 @@ def task_Encoder():
     encoder2 = encoder_Ruiz_Martos.Encoder(in1_enc_B,in2_enc_B,8)
     
     # Initializes limit switches as a pin input 
-    Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.A10,pyb.Pin.IN)
+    Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.A7,pyb.Pin.IN)
     Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.A8,pyb.Pin.IN)
     
     # Initial encoder state
@@ -61,10 +61,10 @@ def task_Encoder():
             Belt_position.put(encoder1.get_position())
             Elbow_position.put(encoder2.get_position())
             if Solenoid_activation.get() == 1:
-                pinC1 = pyb.Pin(pyb.Pin.cpu.C0, pyb.Pin.OUT_PP)
+                pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
                 pinC1.high()
             elif Solenoid_activation.get() == 0:
-                pinC1 = pyb.Pin(pyb.Pin.cpu.C0, pyb.Pin.OPEN_DRAIN, value = 1) 
+                pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value = 1) 
             yield (0)
         
     
