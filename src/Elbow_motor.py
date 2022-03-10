@@ -58,8 +58,8 @@ def main():
         encoder2 = encoder_Ruiz_Martos.Encoder(in1_enc_B,in2_enc_B,8)
         
         
-        Closed_loop_Elbow = closedloop.ClosedLoop(0.2, 0)
-        Closed_loop_Belt = closedloop.ClosedLoop(0.2, 0)
+        Closed_loop_Elbow = closedloop.ClosedLoop(0.5, 0)
+        Closed_loop_Belt = closedloop.ClosedLoop(0.5, 0)
         time_start = time.ticks_ms()
         
         time_period = 10 #specifying that the interval we want is 10s
@@ -70,7 +70,7 @@ def main():
         encoder1.set_position(0)
         encoder2.set_position(0)
         Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.A7,pyb.Pin.IN)
-        Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.A8,pyb.Pin.IN)
+        Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.A5,pyb.Pin.IN)
         while True:
             if Limit_switch_Elbow.value() == 1 and Limit_switch_Belt.value() == 1:
                 break
