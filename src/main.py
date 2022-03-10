@@ -32,8 +32,8 @@ def task_Encoder():
     encoder2 = encoder_Ruiz_Martos.Encoder(in1_enc_B,in2_enc_B,8)
     
     # Initializes limit switches as a pin input 
-    Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.C0,pyb.Pin.IN)
-    Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.C2,pyb.Pin.IN)
+    Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.A10,pyb.Pin.IN)
+    Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.,pyb.Pin.IN)
     
     # Initial encoder state
     enc_state = 0
@@ -60,10 +60,10 @@ def task_Encoder():
             Belt_position.put(encoder1.get_position())
             Elbow_position.put(encoder2.get_position())
             if Solenoid_activation.get() == 1:
-                pinC1 = pyb.Pin(pyb.Pin.cpu.C1, pyb.Pin.OUT_PP)
-                pinC1.low()
+                pinC1 = pyb.Pin(pyb.Pin.cpu.C0, pyb.Pin.OUT_PP)
+                pinC1.high()
             elif Solenoid_activation.get() == 0:
-                pinC1 = pyb.Pin(pyb.Pin.cpu.C1, pyb.Pin.OUT_OD) 
+                pinC1 = pyb.Pin(pyb.Pin.cpu.C0, pyb.Pin.OPEN_DRAIN, value = 1) 
             yield (0)
         
     
@@ -87,10 +87,12 @@ def task_controller():
     """
      
     #Sets Gain Value of Proportional Controller
-    Gain = 0.5
+    Gain_Elbow = 0.2
+    Gain_Belt = 0.5
     
     #Initializes Closed Loop Object
-    Closed_loop = closedloop.ClosedLoop(Gain, 0)
+    Closed_loop_Elbow = closedloop.ClosedLoop(Gain_Elbow, 0)
+    Closed_loop_Belt = closedloop.ClosedLoop(Gain_Belt, 0)
     
     #Initial Controller State
     controller_state = 0
@@ -141,8 +143,8 @@ def task_controller():
         # General state of controller, Constant updates duty cycles of controller based on position 
         elif controller_state == 4:
     
-            Duty_cycle_elbow.put(Closed_loop.update(Elbow_position_target.get(),Elbow_position.get()))
-            Duty_cycle_belt.put(Closed_loop.update(Belt_position_target.get(),Belt_position.get()))
+            Duty_cycle_elbow.put(Closed_loop_Elbow.update(Elbow_position_target.get(),Elbow_position.get()))
+            Duty_cycle_belt.put(Closed_loop_Belt.update(Belt_position_target.get(),Belt_position.get()))
 
             # Once position is within threshold for target, flags next point activation
             if abs(Elbow_position_target.get()-Elbow_position.get()) <=20 and abs(Belt_position_target.get()-Belt_position.get()) <= 20:
@@ -183,8 +185,8 @@ def task_Drawing():
     x_1 = 10 # x-Length from rotating center to paper origin [in]
     y_1 = 10 # y-Length from rotating center to paper origin [in]
     r = (x_1^2+y_1^2)^(1/2) # Length from rotating center to paper origin [in]
-    Elbow_Ratio = 100 #Ticks/Radian
-    Belt_Ratio = 20 #Ticks/in
+    Elbow_Ratio = 4192/(2*math.pi) #Ticks/Radian
+    Belt_Ratio = 24500/(20*2*0.03937007874) #Ticks/in
     
     #Initial Draw State
     draw_state = 0
@@ -197,6 +199,9 @@ def task_Drawing():
     Execute_Flag.put(0)
     
     while True:
+        
+        
+        
         
         #Initial draw state, Sets up lists and waits for user to insert file name of HPGL code
         if draw_state == 0:
@@ -398,6 +403,22 @@ if __name__ == "__main__":
     
     task_encoder = cotask.Task(task_Encoder(), name = 'Task_Encoder', priority = 2,
                         period = 1, profile = True, trace = False)
+    
+    cotask.task_list.append(task_Draw_calc)
+    cotask.task_list.append(task_controller)
+    cotask.task_list.append(task_motor)
+    cotask.task_list.append(task_encoder)
+    
+    # Run the memory garbage collector to ensure memory is as defragmented as
+    # possible before the real-time scheduler is started
+    gc.collect ()
+    
+    
+
+    # Run the scheduler with the chosen scheduling algorithm. Quit if any 
+    # character is received through the serial port
+    while True:
+        cotask.task_list.pri_sched ()
     
 
     

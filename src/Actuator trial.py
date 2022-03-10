@@ -3,9 +3,18 @@ import time
 
 if __name__ == "__main__":
 
-    enableA = pyb.Pin(pyb.Pin.cpu.C1, pyb.Pin.OUT_PP) #set pin to open drain output7
-    enableA.high()
-    time.sleep(10)
+    pinC1 = pyb.Pin(pyb.Pin.cpu.A0, pyb.Pin.OPEN_DRAIN, value = 1)
+
+    time.sleep(5)
+    
+    pinC1 = pyb.Pin(pyb.Pin.cpu.A0, pyb.Pin.OUT_PP)
+    pinC1.high()
+    time.sleep(5)
+    
+    pinC1 = pyb.Pin(pyb.Pin.cpu.A0, pyb.Pin.OUT_PP)
+    pinC1.low()
+    
+    
     #enableA.low()
     print('ok')
     

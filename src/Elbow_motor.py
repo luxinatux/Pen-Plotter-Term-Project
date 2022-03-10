@@ -30,11 +30,11 @@ def main():
         in1_enc = pyb.Pin(pyb.Pin.cpu.B6)
         in2_enc = pyb.Pin(pyb.Pin.cpu.B7)
         encoder1 = encoder_Ruiz_Martos.Encoder(in1_enc,in2_enc,4) # motor in A
-        Closed_loop = closedloop.ClosedLoop(0.2, 0)
+        Closed_loop = closedloop.ClosedLoop(0.5, 0)
         time_start = time.ticks_ms()
         
         time_period = 10 #specifying that the interval we want is 10s
-        step = 4192 #Specifying that the desired output is 4000 ticks
+        step = 24500/4 #Specifying that the desired output is 4000 ticks
         time_next = 0
         
         while True:
@@ -42,9 +42,10 @@ def main():
             if time_now >= time_next:
                 time_next = time.ticks_add(time_next,time_period)
                 encoder1.update()
-                motor1.set_duty(Closed_loop.update(step,encoder1.get_position(),time_now))
+                motor1.set_duty(Closed_loop.update(step,encoder1.get_position()))
+                print(encoder1.get_position())
             
-            if time_now >= 2000:
+            if time_now >= 5000:
                 Closed_loop.print_lists()
                 motor1.disable()
                 break
@@ -65,7 +66,7 @@ def main():
 if __name__ == '__main__':
     main()
     print("done")
-    time.sleep(5)
+
     
         
         
