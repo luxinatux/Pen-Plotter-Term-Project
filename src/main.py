@@ -343,6 +343,7 @@ if __name__ == "__main__":
         if draw_state == 2:
              up = 0
              down = 1
+             print('State 2')
              for line in file:
     
                  state = 0
@@ -421,6 +422,7 @@ if __name__ == "__main__":
              
          # Converts all the string coordinates to floats and appends them in a new list
         if draw_state == 3:
+             print('State_3')
              for i in range(len(x_list)-1):
                  x_coordinate.append(float(x_list[i])/1016) #1016 points per inch
                  y_coordinate.append(float(y_list[i])/1016) #1016 points per inch
@@ -433,6 +435,7 @@ if __name__ == "__main__":
          
          # Converts cartesian coordinates to our cylindrical coordinates
         if draw_state == 4:
+             print('State_4')
              for i in range(len(x_coordinate)-1):
                  Hyp = (x_coordinate[i]**2+y_coordinate[i]**2)**(1/2)
                  try:
@@ -451,24 +454,28 @@ if __name__ == "__main__":
                  b = math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
                  Arm_angle.append(Theta_3*Elbow_Ratio)
                  Belt_Distance.append(b*Belt_Ratio)
-             draw_state = 5
-             break
+             
+                 
          
+             for i in range(len(Arm_angle)-1):
+                print('{:},{:},{:}'.format(Arm_angle[i],Belt_Distance[i],z_coordinate[i]))
                  
              
+        
             
-             gc.collect()
              point = 0
              up = 0
              down = 1
              print('Executing')
+             break
                 # Run the scheduler with the chosen scheduling algorithm. Quit if any
         # character is received through the serial port
     while True:
+        print('Executing')
         cotask.task_list.pri_sched()
 
         if Next_Point_Flag.get() == 1:
-
+            print('Next_point_Flag')
             try:
                 Elbow_position_target.put(int(Arm_angle[point]))
                 Belt_position_target.put(int(Belt_Distance[point]))
