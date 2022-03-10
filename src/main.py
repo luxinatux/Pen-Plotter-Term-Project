@@ -45,38 +45,43 @@ def task_Encoder():
         # If Limit Switch is activated, initializes zeroing process for Belt.
         if Limit_switch_Belt.value() == 1:
             Zero_Flag_Belt.put(1)
+            encoder2.set_position(0)
 
         # If Limit Switch is activated, initializes zeroing process for Elbow.
         if Limit_switch_Elbow.value() == 1:
             Zero_Flag_Elbow.put(1)
-
+            encoder1.set_position(0)
+            
         # Only run at beginning of program, when running to home position
         if Execute_Flag.get() == 0:
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Elbow.get() == 1:
                 enc_state = 1
-
-        # General Encoder state, constantly updates and activates/deactivates solenoid
-        if enc_state == 0:
-
-            encoder1.update()
-            encoder2.update()
-            Belt_position.put(encoder1.get_position())
-            Elbow_position.put(encoder2.get_position())
-            if Solenoid_activation.get() == 1:
-                pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
-                pinC1.high()
-            elif Solenoid_activation.get() == 0:
-                pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value=1)
-            yield (0)
-
-        # Encoder state used to zero system, sets encoder positions to zero when limit switches activate
-        elif enc_state == 1:
-            encoder2.set_position(0)
-            Elbow_position.put(encoder2.get_position())
-            encoder1.set_position(0)
-            Belt_position.put(encoder1.get_position())
-            enc_state = 0
-            yield(0)
+        if Terminate_Flag.get() != 1:
+            # General Encoder state, constantly updates and activates/deactivates solenoid
+            if enc_state == 0:
+    
+                encoder1.update()
+                encoder2.update()
+                Belt_position.put(encoder1.get_position())
+                Elbow_position.put(encoder2.get_position())
+                if Solenoid_activation.get() == 1:
+                    pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+                    pinC1.low()
+                elif Solenoid_activation.get() == 0:
+                    pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value=1)
+                yield (0)
+    
+            # Encoder state used to zero system, sets encoder positions to zero when limit switches activate
+            elif enc_state == 1:
+                encoder2.set_position(0)
+                #Elbow_position.put(encoder2.get_position())
+                encoder1.set_position(0)
+                #Belt_position.put(encoder1.get_position())
+                enc_state = 0
+                yield(0)
+        elif Terminate_Flag.get() == 1:
+            pinC1 = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+            pinC1.low()
 
         else:
             yield(0)
@@ -91,7 +96,7 @@ def task_controller():
 
     # Sets Gain Value of Proportional Controller
     Gain_Elbow = 0.7
-    Gain_Belt = 0.2
+    Gain_Belt = 0.15
 
     # Initializes Closed Loop Object
     Closed_loop_Elbow = closedloop.ClosedLoop(Gain_Elbow, 0)
@@ -115,7 +120,7 @@ def task_controller():
 
             # Stops both motors if both limit switches activated
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Belt.get() == 1:
-               
+          
                 controller_state = 3
 
         # Sets controller state when system is ready to run
@@ -130,6 +135,7 @@ def task_controller():
 
         # Stops Belt motor once limit switch is acivated
         elif controller_state == 1:
+            print('Belt_stop')
             Duty_cycle_belt.put(0)
             yield(0)
 
@@ -139,7 +145,7 @@ def task_controller():
             yield(0)
         # Stops both motors if both limit switches activated, Initializes program execution
         elif controller_state == 3:
-
+            print('State_3')
             Duty_cycle_elbow.put(0)
             Duty_cycle_belt.put(0)
 
@@ -149,20 +155,23 @@ def task_controller():
 
         # General state of controller, Constant updates duty cycles of controller based on position
         elif controller_state == 4:
+            print('state_4')
+            if Terminate_Flag.get() != 1:
+                Duty_cycle_elbow.put(int(Closed_loop_Elbow.update(
+                    int(Elbow_position_target.get()), int(Elbow_position.get()))))
+                Duty_cycle_belt.put(int(Closed_loop_Belt.update(
+                    int(Belt_position_target.get()), int(Belt_position.get()))))
 
-            Duty_cycle_elbow.put(int(Closed_loop_Elbow.update(
-                int(Elbow_position_target.get()), int(Elbow_position.get()))))
-            Duty_cycle_belt.put(int(Closed_loop_Belt.update(
-                int(Belt_position_target.get()), int(Belt_position.get()))))
-
-            # Once position is within threshold for target, flags next point activation
-            if abs(Elbow_position_target.get()-Elbow_position.get()) <= 5 and abs(Belt_position_target.get()-Belt_position.get()) <= 600:
-                Next_Point_Flag.put(1)
-            yield(0)
+                # Once position is within threshold for target, flags next point activation
+                if abs(Elbow_position_target.get()-Elbow_position.get()) <= 20 and abs(Belt_position_target.get()-Belt_position.get()) <= 600:
+                    Next_Point_Flag.put(1)
+                yield(0)
             # Terminates program, model will run back to home position
             if Terminate_Flag.get() == 1:
                 Execute_Flag.put(0)
                 controller_state = 0
+                Duty_cycle_belt.put(0)
+                Duty_cycle_elbow.put(0)
             yield(0)
         yield(0)
 
@@ -184,12 +193,17 @@ def task_motor():
     motor_elbow.enable()
 
     while True:
-
-        # Constantly updates motor duty cycles based on Controller direction
-        motor_belt.set_duty(Duty_cycle_belt.get())
-        motor_elbow.set_duty(Duty_cycle_elbow.get())
-        # Solenoid Activation here
+        if Terminate_Flag.get() != 1:
+            # Constantly updates motor duty cycles based on Controller direction
+            motor_belt.set_duty(Duty_cycle_belt.get())
+            motor_elbow.set_duty(Duty_cycle_elbow.get())
+            print(Duty_cycle_belt.get())
+        if Terminate_Flag.get() == 1:
+            motor_belt.set_duty(0)
+            motor_elbow.set_duty(0)
         yield(0)
+        
+        
 
 
 # def task_Drawing():
@@ -275,8 +289,8 @@ if __name__ == "__main__":
     # possible before the real-time scheduler is started
     gc.collect()
 
-    x_1 = 10  # x-Length from rotating center to paper origin [in]
-    y_1 = 10  # y-Length from rotating center to paper origin [in]
+    x_1 = 2.5  # x-Length from rotating center to paper origin [in]
+    y_1 = 4.5  # y-Length from rotating center to paper origin [in]
     # Length from rotating center to paper origin [in]
     r = (x_1**2+y_1**2)**(1/2)
     Elbow_Ratio = 4192/(2*math.pi)  # Ticks/Radian
@@ -451,9 +465,9 @@ if __name__ == "__main__":
                  except:
                      Theta_3 = math.pi/2
                      
-                 b = math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
+                 b = Hyp*math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
                  Arm_angle.append(Theta_3*Elbow_Ratio)
-                 Belt_Distance.append(b*Belt_Ratio)
+                 Belt_Distance.append((b-(r-1))*Belt_Ratio)
              
                  
          

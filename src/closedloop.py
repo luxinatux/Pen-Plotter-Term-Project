@@ -43,8 +43,8 @@ class ClosedLoop:
             @param      Time                 Time input used to create a list adjacent to the position list.
             @return     duty                 The duty cycle calculated by the P-Only controller     
         '''
-        self.max_lim = 100
-        self.min_lim = -100
+        self.max_lim = 75
+        self.min_lim = -75
         self.Reference_Vector =  Reference_Vector 
         self.Measured_Vector =   Measured_Vector 
         
