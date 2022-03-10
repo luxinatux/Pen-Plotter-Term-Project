@@ -52,6 +52,14 @@ def task_Encoder():
             Zero_Flag_Elbow.put(1)
             encoder1.set_position(0)
             
+        if Limit_switch_Elbow.value() != 1:
+            Zero_Flag_Elbow.put(0)
+     
+            
+        if Limit_switch_Belt.value() != 1:
+            Zero_Flag_Belt.put(0)
+         
+        
         # Only run at beginning of program, when running to home position
         if Execute_Flag.get() == 0:
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Elbow.get() == 1:
@@ -98,7 +106,7 @@ def task_controller():
     """
 
     # Sets Gain Value of Proportional Controller
-    Gain_Elbow = 0.7
+    Gain_Elbow = 0.6
     Gain_Belt = 0.15
 
     # Initializes Closed Loop Object
@@ -115,7 +123,8 @@ def task_controller():
 
             # Stops Elbow motor once limit switch is acivated
             if Zero_Flag_Elbow.get() == 1:
-                controller_state = 2
+                controller_state = 1
+                
 
              # Stops Elbow motor once limit switch is acivated
             if Zero_Flag_Belt.get() == 1:
@@ -132,20 +141,20 @@ def task_controller():
 
         # Runs both motors to run at a certain speed until it hits the limit switches
         if controller_state == 0:
-            Duty_cycle_elbow.put(-50)
+            Duty_cycle_elbow.put(-10)
             Duty_cycle_belt.put(-50)
             yield(0)
 
         # Stops Belt motor once limit switch is acivated
         elif controller_state == 1:
-          
-            Duty_cycle_belt.put(0)
-            yield(0)
+          if Zero_Flag_Belt.get() == 1:
+             Duty_cycle_belt.put(0)
+          if Zero_Flag_Elbow.get() == 1:
+             Duty_cycle_elbow.put(0)
+          yield(0)
 
         # Stops Elbow motor once limit switch is activated
-        elif controller_state == 2:
-            Duty_cycle_elbow.put(0)
-            yield(0)
+       
         # Stops both motors if both limit switches activated, Initializes program execution
         elif controller_state == 3:
         
@@ -166,7 +175,7 @@ def task_controller():
                     int(Belt_position_target.get()), int(Belt_position.get()))))
 
                 # Once position is within threshold for target, flags next point activation
-                if abs(Elbow_position_target.get()-Elbow_position.get()) <= 20 and abs(Belt_position_target.get()-Belt_position.get()) <= 600:
+                if abs(Elbow_position_target.get()-Elbow_position.get()) <= 15 and abs(Belt_position_target.get()-Belt_position.get()) <= 600:
                     Next_Point_Flag.put(1)
                 yield(0)
             # Terminates program, model will run back to home position
@@ -197,13 +206,26 @@ def task_motor():
 
     while True:
         if Terminate_Flag.get() != 1:
-            # Constantly updates motor duty cycles based on Controller direction
-            motor_belt.set_duty(Duty_cycle_belt.get())
-            motor_elbow.set_duty(Duty_cycle_elbow.get())
-            print(Duty_cycle_belt.get())
+            if Execute_Flag.get() == 0:
+                motor_belt.set_duty(Duty_cycle_belt.get())
+                motor_elbow.set_duty(Duty_cycle_elbow.get())
+              
+                
+            if Execute_Flag.get() == 1:
+                motor_elbow.enable()
+                motor_belt.enable()
+                # Constantly updates motor duty cycles based on Controller direction
+                motor_belt.set_duty(Duty_cycle_belt.get())
+                motor_elbow.set_duty(Duty_cycle_elbow.get())
+             
         if Terminate_Flag.get() == 1:
             motor_belt.set_duty(0)
             motor_elbow.set_duty(0)
+            motor_elbow.disable()
+            motor_belt.disable()
+            
+        if Zero_Flag_Elbow.get() == 1:
+            motor_elbow.disable()
         yield(0)
         
         
@@ -281,7 +303,7 @@ if __name__ == "__main__":
                              period=15, profile=True, trace=False)
 
     task_encoder = cotask.Task(task_Encoder, name='Task_Encoder', priority=1,
-                               period=5, profile=True, trace=False)
+                               period=8, profile=True, trace=False)
 
     # cotask.task_list.append(task_Draw_calc)
     cotask.task_list.append(task_controller)
@@ -503,3 +525,4 @@ if __name__ == "__main__":
             except:
                 print('Terminate')
                 Terminate_Flag.put(1)
+                
