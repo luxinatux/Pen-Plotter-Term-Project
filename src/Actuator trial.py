@@ -3,16 +3,16 @@ import time
 
 if __name__ == "__main__":
 
-    pinC1 = pyb.Pin(pyb.Pin.cpu.A0, pyb.Pin.OPEN_DRAIN, value = 1)
+    pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value = 1)
 
     time.sleep(5)
     
-    pinC1 = pyb.Pin(pyb.Pin.cpu.A0, pyb.Pin.OUT_PP)
-    pinC1.high()
+    pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+    pin_sol.high()
     time.sleep(5)
     
-    pinC1 = pyb.Pin(pyb.Pin.cpu.A0, pyb.Pin.OUT_PP)
-    pinC1.low()
+    pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+    pin_sol.low()
     
     
     #enableA.low()
