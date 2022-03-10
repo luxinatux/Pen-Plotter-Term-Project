@@ -400,7 +400,6 @@ if __name__ == "__main__":
                                 y_list.append(x_2[n])
                                 z_list.append(down)
             draw_state = 3
-            x = []
         
             
         # Converts all the string coordinates to floats and appends them in a new list
@@ -450,6 +449,8 @@ if __name__ == "__main__":
                 
     gc.collect ()
     point = 0
+    up = 0
+    down = 1
     # Run the scheduler with the chosen scheduling algorithm. Quit if any 
     # character is received through the serial port
     while True:
