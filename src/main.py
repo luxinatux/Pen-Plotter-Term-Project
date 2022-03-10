@@ -38,9 +38,10 @@ def task_Encoder():
     
     # Initial encoder state
     enc_state = 0
+    print('Encoder Initialized')
     
     while True:
-        
+        print('Encoder position')
         # If Limit Switch is activated, initializes zeroing process for Belt.
         if Limit_switch_Belt.value() == 1:
             Zero_Flag_Belt.put(1)
@@ -56,6 +57,7 @@ def task_Encoder():
             
         # General Encoder state, constantly updates and activates/deactivates solenoid
         if enc_state == 0:
+            print('update')
             encoder1.update()
             encoder2.update()
             Belt_position.put(encoder1.get_position())
@@ -97,9 +99,9 @@ def task_controller():
     
     #Initial Controller State
     controller_state = 0
-    
+    print('Initialize Controller')
     while True:
-        
+        print('Run Controller')
         # Only Runs in the beginning of the program
         if Execute_Flag.get() == 0:
             
@@ -171,7 +173,7 @@ def task_motor():
     in2_motB = pyb.Pin(pyb.Pin.cpu.A1)
     motor_elbow = motor_Ruiz_Martos.Motor(enableB,in1_motB,in2_motB,5) # motor in B
     motor_elbow.enable()
-    
+    print('Initialize Motors')
     while True:
         
         #Constantly updates motor duty cycles based on Controller direction
@@ -259,7 +261,7 @@ if __name__ == "__main__":
     task_motor = cotask.Task(task_motor, name = 'Task_motor', priority = 1,
                         period = 10, profile = True, trace = False)
     
-    task_encoder = cotask.Task(task_Encoder, name = 'Task_Encoder', priority = 2,
+    task_encoder = cotask.Task(task_Encoder, name = 'Task_Encoder', priority = 1,
                         period = 1, profile = True, trace = False)
     
     # cotask.task_list.append(task_Draw_calc)
@@ -451,6 +453,7 @@ if __name__ == "__main__":
     point = 0
     up = 0
     down = 1
+    print('Executing')
     # Run the scheduler with the chosen scheduling algorithm. Quit if any 
     # character is received through the serial port
     while True:
