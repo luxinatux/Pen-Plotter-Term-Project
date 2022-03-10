@@ -22,35 +22,76 @@ def main():
             @param Gain             The proportional gain of the closed-loop controller. 
                     
         '''
+        
+        
+        
+#         pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value = 1)
+# 
+#         time.sleep(5)
+#     
+#         pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+#         pin_sol.high()
+#         time.sleep(5)
+#     
+#         pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+#         pin_sol.low()
+    
+    
+        #enableA.low()
+        print('ok')
         enableA = pyb.Pin(pyb.Pin.cpu.A10, pyb.Pin.OUT_PP)
         in1_mot = pyb.Pin(pyb.Pin.cpu.B4)
         in2_mot = pyb.Pin(pyb.Pin.cpu.B5)
-        motor1 = motor_Ruiz_Martos.Motor(enableA,in1_mot,in2_mot,3) # motor in A
-        motor1.enable()
+        motor_belt = motor_Ruiz_Martos.Motor(enableA,in1_mot,in2_mot,3) # motor in A
+        motor_belt.enable()
         in1_enc = pyb.Pin(pyb.Pin.cpu.B6)
         in2_enc = pyb.Pin(pyb.Pin.cpu.B7)
         encoder1 = encoder_Ruiz_Martos.Encoder(in1_enc,in2_enc,4) # motor in A
-        Closed_loop = closedloop.ClosedLoop(0.5, 0)
+        
+        enableB = pyb.Pin(pyb.Pin.cpu.C1, pyb.Pin.OUT_PP)
+        in1_motB = pyb.Pin(pyb.Pin.cpu.A0)
+        in2_motB = pyb.Pin(pyb.Pin.cpu.A1)
+        motor_elbow = motor_Ruiz_Martos.Motor(enableB,in1_motB,in2_motB,5) # motor in B
+        motor_elbow.enable()
+        in1_enc_B = pyb.Pin(pyb.Pin.cpu.C6)
+        in2_enc_B = pyb.Pin(pyb.Pin.cpu.C7)
+        encoder2 = encoder_Ruiz_Martos.Encoder(in1_enc_B,in2_enc_B,8)
+        
+        
+        Closed_loop_Elbow = closedloop.ClosedLoop(0.2, 0)
+        Closed_loop_Belt = closedloop.ClosedLoop(0.2, 0)
         time_start = time.ticks_ms()
         
         time_period = 10 #specifying that the interval we want is 10s
-        step = 24500/4 #Specifying that the desired output is 4000 ticks
-        time_next = 0
+        step_Belt = 2000 # 24500 ticks per rev
+        step_Elbow = 4000 # 4192 ticks per rev
         
+        time_next = 0
+        encoder1.set_position(0)
+        encoder2.set_position(0)
+        Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.A7,pyb.Pin.IN)
+        Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.A8,pyb.Pin.IN)
+        while True:
+            if Limit_switch_Elbow.value() == 1 and Limit_switch_Belt.value() == 1:
+                break
         while True:
             time_now = time.ticks_diff(time.ticks_ms(),time_start)
             if time_now >= time_next:
                 time_next = time.ticks_add(time_next,time_period)
+                encoder2.update()
                 encoder1.update()
-                motor1.set_duty(Closed_loop.update(step,encoder1.get_position()))
-                print(encoder1.get_position())
+                motor_elbow.set_duty(Closed_loop_Elbow.update(step_Elbow,encoder2.get_position()))
+                motor_belt.set_duty(Closed_loop_Belt.update(step_Belt,encoder1.get_position()))
+                print('{:},{:}'.format(encoder2.get_position(),encoder1.get_position()))
+                
             
-            if time_now >= 5000:
-                Closed_loop.print_lists()
-                motor1.disable()
+            if time_now >= 3000:
+                
+                motor_elbow.disable()
                 break
 
 #         motor1.set_duty(100)
+
 #         counter = 0
 #         while True:
 #             encoder1.update()
