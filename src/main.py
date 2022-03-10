@@ -15,6 +15,7 @@ import encoder_Ruiz_Martos
 import motor_Ruiz_Martos
 import math
 
+
 def task_Encoder():
     """!
     Task which initializes and updates encoder 1. 
@@ -137,7 +138,7 @@ def task_controller():
         elif controller_state == 3:
             Duty_cycle_elbow.put(0)
             Duty_cycle_belt.put(0)
-            
+            Execute_Flag.put(1)
             yield(0)
             
         # General state of controller, Constant updates duty cycles of controller based on position 
@@ -147,7 +148,7 @@ def task_controller():
             Duty_cycle_belt.put(Closed_loop_Belt.update(Belt_position_target.get(),Belt_position.get()))
 
             # Once position is within threshold for target, flags next point activation
-            if abs(Elbow_position_target.get()-Elbow_position.get()) <=20 and abs(Belt_position_target.get()-Belt_position.get()) <= 20:
+            if abs(Elbow_position_target.get()-Elbow_position.get()) <=5 and abs(Belt_position_target.get()-Belt_position.get()) <= 20:
                 Next_Point_Flag.put(1)
             yield(0)
             # Terminates program, model will run back to home position
@@ -180,29 +181,114 @@ def task_motor():
         yield(0)
     
     
-def task_Drawing():
+# def task_Drawing():
+#         draw_state = 0
+#         # Cycles through points and adds them to the shared variables once the Next_Point_Flag is raised
+#         if draw_state == 0:
+            
+        
+            
+#             if Next_Point_Flag.get() == 1:
+                
+#                 if Elbow_position_target.any():
+#                     Elbow_position_target.put(Elbow_position_queue.get())
+#                     Belt_position_target.put(Belt_position_queue.get())
+#                     Solenoid_activation.put(Solenoid_position_queue.get())
+#                     Next_Point_Flag.put(0)
+#                     yield(0)
+#                 else:
+#                     Terminate_Flag.put(1)
+#                     draw_state = 0
+                
+#             yield(0)
+  
+            
+       
+                    
+                    
+                    
+                    
+                    
+                
+                            
+                
     
-    x_1 = 10 # x-Length from rotating center to paper origin [in]
-    y_1 = 10 # y-Length from rotating center to paper origin [in]
-    r = (x_1^2+y_1^2)^(1/2) # Length from rotating center to paper origin [in]
-    Elbow_Ratio = 4192/(2*math.pi) #Ticks/Radian
-    Belt_Ratio = 24500/(20*2*0.03937007874) #Ticks/in
-    print('Zeroing')
+    
+    
+if __name__ == "__main__":
+    
+    
+    
+    
+
+    ## instantiate shared and queued objects
+    Elbow_position = task_share.Share('i',thread_protect = False, name = "Elbow Position")
+    Belt_position = task_share.Share('i',thread_protect = False, name = "Belt Position")
+    
+    Elbow_position_target = task_share.Share('i',thread_protect = False, name = "Elbow Target Position")
+    Belt_position_target = task_share.Share('i',thread_protect = False, name = "Belt Target Position")
+    Solenoid_activation = task_share.Share('i',thread_protect = False, name = "Solenoid Activation")
+    
+    Terminate_Flag = task_share.Share('i',thread_protect = False, name = "Terminate Flag")
+    Next_Point_Flag = task_share.Share('i',thread_protect = False, name = "Next Point Flag")
+    
+    Duty_cycle_elbow = task_share.Share('i',thread_protect = False, name = "Duty Cycle Elbow")
+    Duty_cycle_belt = task_share.Share('i',thread_protect = False, name = "Duty Cycle Belt")
+    
+    Zero_Flag_Elbow = task_share.Share('i',thread_protect = False, name = "Set Elbow zero flag")
+    Zero_Flag_Belt = task_share.Share('i',thread_protect = False, name = "Set Belt zero flag")
+    
+    Execute_Flag = task_share.Share('i',thread_protect = False, name = "Execute Flag")
+    
+    # Elbow_position_queue = task_share.Queue('i', 2500, thread_protect = False, overwrite = False,
+    #                        name = "Elbow Positions Queue")
+    # Belt_position_queue = task_share.Queue('i', 2500, thread_protect = False, overwrite = False,
+    #                        name = "Belt Positions Queue")
+    # Solenoid_position_queue = task_share.Queue('i', 2500, thread_protect = False, overwrite = False,
+    #                        name = "Belt Positions Queue")
+    
+    
+    
+    #Create Task Objects
+    # task_Draw_calc = cotask.Task(task_Drawing, name = 'Task_Drawing_Calcs', priority = 0,
+    #                     period = 50, profile = True, trace = False)
+    
+    task_controller = cotask.Task(task_controller, name = 'Task_Controller', priority = 1,
+                        period = 10, profile = True, trace = False)
+    
+    task_motor = cotask.Task(task_motor, name = 'Task_motor', priority = 1,
+                        period = 10, profile = True, trace = False)
+    
+    task_encoder = cotask.Task(task_Encoder, name = 'Task_Encoder', priority = 2,
+                        period = 1, profile = True, trace = False)
+    
+    # cotask.task_list.append(task_Draw_calc)
+    cotask.task_list.append(task_controller)
+    cotask.task_list.append(task_motor)
+    cotask.task_list.append(task_encoder)
+    
+    # Run the memory garbage collector to ensure memory is as defragmented as
+    # possible before the real-time scheduler is started
+    gc.collect ()
+    
+    x_1 = 10  # x-Length from rotating center to paper origin [in]
+    y_1 = 10  # y-Length from rotating center to paper origin [in]
+    # Length from rotating center to paper origin [in]
+    r = (x_1**2+y_1**2)**(1/2)
+    Elbow_Ratio = 4192/(2*math.pi)  # Ticks/Radian
+    Belt_Ratio = 24500/(20*2*0.03937007874)  # Ticks/in
     #Initial Draw State
     draw_state = 0
     # Sets up serial port communication
     ser = pyb.USB_VCP()
     my_str = ''
     print("Enter File Name")
-    
+
     # Initializes Execute Flag to not run until it has calculated all the coordinates.
     Execute_Flag.put(0)
-    
+
     while True:
-        
-        
-        
-        
+
         #Initial draw state, Sets up lists and waits for user to insert file name of HPGL code
         if draw_state == 0:
             x_list = []
@@ -236,24 +322,24 @@ def task_Drawing():
                 else:
                     my_str += char_in
                     ser.write(char_in)
-                yield(0)
+              
         
         # Tries to open file, if no file is found returns user back to inserting file name (state 0)
         if draw_state == 1:
             try:
-                file = open("{:}".format(my_str),"r")
+                file = open(my_str,"r")
             except:
                 draw_state = 0
                 print("File Not Found! Enter Another File Name")
             else: 
                 draw_state = 2
-            yield(0)
+                my_str = ''
+           
                     
         # Processes file to usable HPGL cartesian coordinates
         if draw_state == 2:
             up = 0
             down = 1
-            file = open("{:}".format(my_str),"r")
             for line in file:
 
                 state = 0
@@ -314,112 +400,74 @@ def task_Drawing():
                                 y_list.append(x_2[n])
                                 z_list.append(down)
             draw_state = 3
-            yield(0)
+            x = []
+        
             
         # Converts all the string coordinates to floats and appends them in a new list
         if draw_state == 3:
             for i in range(len(x_list)):
                 x_coordinate.append(float(x_list[i])/1016) #1016 points per inch
-                y_coordinate.append(float(x_list[i])/1016) #1016 points per inch
+                y_coordinate.append(float(y_list[i])/1016) #1016 points per inch
                 z_coordinate.append(z_list[i])
+            x_list = []
+            y_list = []
+            z_list = []
             draw_state = 4
-            yield(0)
+           
         
         # Converts cartesian coordinates to our cylindrical coordinates
         if draw_state == 4:
-            for i in range(len(x_coordinate)):
-                Hyp = (x_coordinate[i]^2+y_coordinate[i]^2)^(1/2)
-                Theta_1 = math.arctan(y_coordinate[i]/x_coordinate[i])
-                Theta_2 = math.arctan(y_1/x_1)
-                Theta_3 = math.arctan(Hyp*math.sin(Theta_1+Theta_2)/(r-(Hyp*math.cos(Theta_2+Theta_1))))
+            for i in range(len(x_coordinate)-1):
+                Hyp = (x_coordinate[i]**2+y_coordinate[i]**2)**(1/2)
+                try:
+                    Theta_1 = math.atan(y_coordinate[i]/x_coordinate[i])
+                except:
+                    Theta_1 = math.pi/2
+                try:
+                    Theta_2 = math.atan(y_1/x_1)
+                except:
+                    Theta_2 = math.pi/2
+                try:         
+                    Theta_3 = math.atan(Hyp*math.sin(Theta_1+Theta_2)/(r-(Hyp*math.cos(Theta_2+Theta_1))))
+                except:
+                    Theta_3 = math.pi/2
+                    
                 b = math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
                 Arm_angle.append(Theta_3*Elbow_Ratio)
                 Belt_Distance.append(b*Belt_Ratio)
+            x_coordinate = []
+            y_coordinate = []
+            
             draw_state = 5
-            point = 0
-            Execute_Flag.put(1)
-            yield(0)
+            # for i in range(len(Arm_angle)):
+            #     Elbow_position_queue.put(Arm_angle[i])
+            #     Belt_position_queue.put(Belt_Distance[i])
+            #     Solenoid_position_queue.put(z_coordinate[i])
+            break
                 
-        # Cycles through points and adds them to the shared variables once the Next_Point_Flag is raised
-        if draw_state == 5:
             
             
-            if Next_Point_Flag.get() == 1:
                 
-                try:
-                    Elbow_position_target.put(Arm_angle[point])
-                    Belt_position_target.put(Belt_Distance[point])
-                    Solenoid_activation.put(z_coordinate[point])
-                    Next_Point_Flag.put(0)
-                    point +=1
-                except:
-                    Terminate_Flag.put(1)
-                    draw_state = 0
-                
-            yield(0)
-            
-       
-                    
-                    
-                    
-                    
-                    
-                
-                            
-                
-    
-    
-    
-if __name__ == "__main__":
-
-    ## instantiate shared and queued objects
-    Elbow_position = task_share.Share('i',thread_protect = False, name = "Elbow Position")
-    Belt_position = task_share.Share('i',thread_protect = False, name = "Belt Position")
-    
-    Elbow_position_target = task_share.Share('i',thread_protect = False, name = "Elbow Target Position")
-    Belt_position_target = task_share.Share('i',thread_protect = False, name = "Belt Target Position")
-    Solenoid_activation = task_share.Share('i',thread_protect = False, name = "Solenoid Activation")
-    
-    Terminate_Flag = task_share.Share('i',thread_protect = False, name = "Terminate Flag")
-    Next_Point_Flag = task_share.Share('i',thread_protect = False, name = "Next Point Flag")
-    
-    Duty_cycle_elbow = task_share.Share('i',thread_protect = False, name = "Duty Cycle Elbow")
-    Duty_cycle_belt = task_share.Share('i',thread_protect = False, name = "Duty Cycle Belt")
-    
-    Zero_Flag_Elbow = task_share.Share('i',thread_protect = False, name = "Set Elbow zero flag")
-    Zero_Flag_Belt = task_share.Share('i',thread_protect = False, name = "Set Belt zero flag")
-    
-    Execute_Flag = task_share.Share('i',thread_protect = False, name = "Execute Flag")
-    
-    
-    #Create Task Objects
-    task_Draw_calc = cotask.Task(task_Drawing(), name = 'Task_Drawing_Calcs', priority = 0,
-                        period = 50, profile = True, trace = False)
-    
-    task_controller = cotask.Task(task_controller(), name = 'Task_Controller', priority = 1,
-                        period = 10, profile = True, trace = False)
-    
-    task_motor = cotask.Task(task_motor(), name = 'Task_motor', priority = 1,
-                        period = 10, profile = True, trace = False)
-    
-    task_encoder = cotask.Task(task_Encoder(), name = 'Task_Encoder', priority = 2,
-                        period = 1, profile = True, trace = False)
-    
-    cotask.task_list.append(task_Draw_calc)
-    cotask.task_list.append(task_controller)
-    cotask.task_list.append(task_motor)
-    cotask.task_list.append(task_encoder)
-    
-    # Run the memory garbage collector to ensure memory is as defragmented as
-    # possible before the real-time scheduler is started
     gc.collect ()
-    
-    
-
+    point = 0
     # Run the scheduler with the chosen scheduling algorithm. Quit if any 
     # character is received through the serial port
     while True:
         cotask.task_list.pri_sched ()
+        
+        if Next_Point_Flag.get() == 1:
+            
+            try:
+                Elbow_position_target.put(Arm_angle[point])
+                Belt_position_target.put(Belt_Distance[point])
+                Solenoid_activation.put(z_coordinate[point])
+                Next_Point_Flag.put(0)
+                
+            except:
+                Terminate_Flag.put(1)
+            
+            
+
     
 
     
