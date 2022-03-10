@@ -38,7 +38,7 @@ def task_Encoder():
 
     # Initial encoder state
     enc_state = 0
-    print('Encoder Initialized')
+  
 
     while True:
 
@@ -91,7 +91,7 @@ def task_controller():
 
     # Sets Gain Value of Proportional Controller
     Gain_Elbow = 0.7
-    Gain_Belt = 0.5
+    Gain_Belt = 0.2
 
     # Initializes Closed Loop Object
     Closed_loop_Elbow = closedloop.ClosedLoop(Gain_Elbow, 0)
@@ -99,9 +99,9 @@ def task_controller():
 
     # Initial Controller State
     controller_state = 0
-    print('Initialize Controller')
+   
     while True:
-        print('Run Controller')
+        
         # Only Runs in the beginning of the program
         if Execute_Flag.get() == 0:
 
@@ -115,7 +115,7 @@ def task_controller():
 
             # Stops both motors if both limit switches activated
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Belt.get() == 1:
-                print('Controller_zero')
+               
                 controller_state = 3
 
         # Sets controller state when system is ready to run
@@ -156,7 +156,7 @@ def task_controller():
                 int(Belt_position_target.get()), int(Belt_position.get()))))
 
             # Once position is within threshold for target, flags next point activation
-            if abs(Elbow_position_target.get()-Elbow_position.get()) <= 5 and abs(Belt_position_target.get()-Belt_position.get()) <= 500:
+            if abs(Elbow_position_target.get()-Elbow_position.get()) <= 5 and abs(Belt_position_target.get()-Belt_position.get()) <= 600:
                 Next_Point_Flag.put(1)
             yield(0)
             # Terminates program, model will run back to home position
@@ -466,16 +466,15 @@ if __name__ == "__main__":
              point = 0
              up = 0
              down = 1
-             print('Executing')
+           
              break
                 # Run the scheduler with the chosen scheduling algorithm. Quit if any
         # character is received through the serial port
     while True:
-        print('Executing')
         cotask.task_list.pri_sched()
 
         if Next_Point_Flag.get() == 1:
-            print('Next_point_Flag')
+          
             try:
                 Elbow_position_target.put(int(Arm_angle[point]))
                 Belt_position_target.put(int(Belt_Distance[point]))
