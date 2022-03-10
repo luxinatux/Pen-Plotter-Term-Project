@@ -33,7 +33,7 @@ def task_Encoder():
     
     # Initializes limit switches as a pin input 
     Limit_switch_Belt = pyb.Pin(pyb.Pin.cpu.A10,pyb.Pin.IN)
-    Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.,pyb.Pin.IN)
+    Limit_switch_Elbow = pyb.Pin(pyb.Pin.cpu.A8,pyb.Pin.IN)
     
     # Initial encoder state
     enc_state = 0
@@ -137,7 +137,7 @@ def task_controller():
         elif controller_state == 3:
             Duty_cycle_elbow.put(0)
             Duty_cycle_belt.put(0)
-            Execute_Flag.put(1)
+            
             yield(0)
             
         # General state of controller, Constant updates duty cycles of controller based on position 
@@ -187,7 +187,7 @@ def task_Drawing():
     r = (x_1^2+y_1^2)^(1/2) # Length from rotating center to paper origin [in]
     Elbow_Ratio = 4192/(2*math.pi) #Ticks/Radian
     Belt_Ratio = 24500/(20*2*0.03937007874) #Ticks/in
-    
+    print('Zeroing')
     #Initial Draw State
     draw_state = 0
     # Sets up serial port communication
@@ -337,6 +337,7 @@ def task_Drawing():
                 Belt_Distance.append(b*Belt_Ratio)
             draw_state = 5
             point = 0
+            Execute_Flag.put(1)
             yield(0)
                 
         # Cycles through points and adds them to the shared variables once the Next_Point_Flag is raised
