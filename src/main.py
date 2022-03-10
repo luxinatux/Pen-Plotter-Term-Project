@@ -465,7 +465,7 @@ if __name__ == "__main__":
                 Next_Point_Flag.put(0)
                 
             except:
-                Terminate_Flag.put(1)
+                Terminate_Flag.put(1) 
             
             
 
