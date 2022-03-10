@@ -7,8 +7,8 @@ Created on Sun Mar  6 17:40:23 2022
 """
 import math
 
-x_1 = 10  # x-Length from rotating center to paper origin [in]
-y_1 = 10  # y-Length from rotating center to paper origin [in]
+x_1 = 6  # x-Length from rotating center to paper origin [in]
+y_1 = 4.25  # y-Length from rotating center to paper origin [in]
 # Length from rotating center to paper origin [in]
 r = (x_1**2+y_1**2)**(1/2)
 Elbow_Ratio = 4192/(2*math.pi)  # Ticks/Radian
@@ -160,9 +160,9 @@ while True:
              except:
                  Theta_3 = math.pi/2
                  
-             b = math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
+             b = Hyp*math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
              Arm_angle.append(Theta_3*Elbow_Ratio)
-             Belt_Distance.append(b*Belt_Ratio)
+             Belt_Distance.append((b)*Belt_Ratio)
          draw_state = 5
          break
      
