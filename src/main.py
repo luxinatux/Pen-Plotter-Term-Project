@@ -38,7 +38,7 @@ def task_Encoder():
 
     # Initial encoder state
     enc_state = 0
-    print('Encoder Initialized')
+  
 
     while True:
 
@@ -91,7 +91,7 @@ def task_controller():
 
     # Sets Gain Value of Proportional Controller
     Gain_Elbow = 0.7
-    Gain_Belt = 0.5
+    Gain_Belt = 0.2
 
     # Initializes Closed Loop Object
     Closed_loop_Elbow = closedloop.ClosedLoop(Gain_Elbow, 0)
@@ -99,9 +99,9 @@ def task_controller():
 
     # Initial Controller State
     controller_state = 0
-    print('Initialize Controller')
+   
     while True:
-        print('Run Controller')
+        
         # Only Runs in the beginning of the program
         if Execute_Flag.get() == 0:
 
@@ -115,7 +115,7 @@ def task_controller():
 
             # Stops both motors if both limit switches activated
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Belt.get() == 1:
-                print('Controller_zero')
+               
                 controller_state = 3
 
         # Sets controller state when system is ready to run
@@ -156,7 +156,7 @@ def task_controller():
                 int(Belt_position_target.get()), int(Belt_position.get()))))
 
             # Once position is within threshold for target, flags next point activation
-            if abs(Elbow_position_target.get()-Elbow_position.get()) <= 5 and abs(Belt_position_target.get()-Belt_position.get()) <= 500:
+            if abs(Elbow_position_target.get()-Elbow_position.get()) <= 5 and abs(Belt_position_target.get()-Belt_position.get()) <= 600:
                 Next_Point_Flag.put(1)
             yield(0)
             # Terminates program, model will run back to home position
@@ -343,6 +343,7 @@ if __name__ == "__main__":
         if draw_state == 2:
              up = 0
              down = 1
+             print('State 2')
              for line in file:
     
                  state = 0
@@ -421,6 +422,7 @@ if __name__ == "__main__":
              
          # Converts all the string coordinates to floats and appends them in a new list
         if draw_state == 3:
+             print('State_3')
              for i in range(len(x_list)-1):
                  x_coordinate.append(float(x_list[i])/1016) #1016 points per inch
                  y_coordinate.append(float(y_list[i])/1016) #1016 points per inch
@@ -433,6 +435,7 @@ if __name__ == "__main__":
          
          # Converts cartesian coordinates to our cylindrical coordinates
         if draw_state == 4:
+             print('State_4')
              for i in range(len(x_coordinate)-1):
                  Hyp = (x_coordinate[i]**2+y_coordinate[i]**2)**(1/2)
                  try:
@@ -451,32 +454,35 @@ if __name__ == "__main__":
                  b = math.sin(Theta_1+Theta_2)/math.sin(Theta_3)
                  Arm_angle.append(Theta_3*Elbow_Ratio)
                  Belt_Distance.append(b*Belt_Ratio)
-             draw_state = 5
-             break
+             
+                 
          
+             for i in range(len(Arm_angle)-1):
+                print('{:},{:},{:}'.format(Arm_angle[i],Belt_Distance[i],z_coordinate[i]))
                  
              
+        
             
-        gc.collect()
-        point = 0
-        up = 0
-        down = 1
-        print('Executing')
-        # Run the scheduler with the chosen scheduling algorithm. Quit if any
+             point = 0
+             up = 0
+             down = 1
+           
+             break
+                # Run the scheduler with the chosen scheduling algorithm. Quit if any
         # character is received through the serial port
-        while True:
-            cotask.task_list.pri_sched()
-    
-            if Next_Point_Flag.get() == 1:
-    
-                try:
-                    Elbow_position_target.put(int(Arm_angle[point]))
-                    Belt_position_target.put(int(Belt_Distance[point]))
-                    Solenoid_activation.put(int(z_coordinate[point]))
-                    Next_Point_Flag.put(0)
-                    print('Next_point')
-                    point += 1
-    
-                except:
-                    print('Terminate')
-                    Terminate_Flag.put(1)
+    while True:
+        cotask.task_list.pri_sched()
+
+        if Next_Point_Flag.get() == 1:
+          
+            try:
+                Elbow_position_target.put(int(Arm_angle[point]))
+                Belt_position_target.put(int(Belt_Distance[point]))
+                Solenoid_activation.put(int(z_coordinate[point]))
+                Next_Point_Flag.put(0)
+                print('Next_point')
+                point += 1
+
+            except:
+                print('Terminate')
+                Terminate_Flag.put(1)
