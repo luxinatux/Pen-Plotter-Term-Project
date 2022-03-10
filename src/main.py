@@ -39,7 +39,7 @@ def task_Encoder():
     # Initial encoder state
     enc_state = 0
   
-
+    count = 0
     while True:
 
         # If Limit Switch is activated, initializes zeroing process for Belt.
@@ -59,7 +59,10 @@ def task_Encoder():
         if Terminate_Flag.get() != 1:
             # General Encoder state, constantly updates and activates/deactivates solenoid
             if enc_state == 0:
-    
+                if count == 0:
+                    encoder1.set_position(0)
+                    encoder2.set_position(0)
+                count +=1
                 encoder1.update()
                 encoder2.update()
                 Belt_position.put(encoder1.get_position())
@@ -135,7 +138,7 @@ def task_controller():
 
         # Stops Belt motor once limit switch is acivated
         elif controller_state == 1:
-            print('Belt_stop')
+          
             Duty_cycle_belt.put(0)
             yield(0)
 
@@ -145,7 +148,7 @@ def task_controller():
             yield(0)
         # Stops both motors if both limit switches activated, Initializes program execution
         elif controller_state == 3:
-            print('State_3')
+        
             Duty_cycle_elbow.put(0)
             Duty_cycle_belt.put(0)
 
@@ -155,7 +158,7 @@ def task_controller():
 
         # General state of controller, Constant updates duty cycles of controller based on position
         elif controller_state == 4:
-            print('state_4')
+     
             if Terminate_Flag.get() != 1:
                 Duty_cycle_elbow.put(int(Closed_loop_Elbow.update(
                     int(Elbow_position_target.get()), int(Elbow_position.get()))))
