@@ -457,26 +457,26 @@ if __name__ == "__main__":
                  
              
             
-        gc.collect()
-        point = 0
-        up = 0
-        down = 1
-        print('Executing')
-        # Run the scheduler with the chosen scheduling algorithm. Quit if any
+             gc.collect()
+             point = 0
+             up = 0
+             down = 1
+             print('Executing')
+                # Run the scheduler with the chosen scheduling algorithm. Quit if any
         # character is received through the serial port
-        while True:
-            cotask.task_list.pri_sched()
-    
-            if Next_Point_Flag.get() == 1:
-    
-                try:
-                    Elbow_position_target.put(int(Arm_angle[point]))
-                    Belt_position_target.put(int(Belt_Distance[point]))
-                    Solenoid_activation.put(int(z_coordinate[point]))
-                    Next_Point_Flag.put(0)
-                    print('Next_point')
-                    point += 1
-    
-                except:
-                    print('Terminate')
-                    Terminate_Flag.put(1)
+    while True:
+        cotask.task_list.pri_sched()
+
+        if Next_Point_Flag.get() == 1:
+
+            try:
+                Elbow_position_target.put(int(Arm_angle[point]))
+                Belt_position_target.put(int(Belt_Distance[point]))
+                Solenoid_activation.put(int(z_coordinate[point]))
+                Next_Point_Flag.put(0)
+                print('Next_point')
+                point += 1
+
+            except:
+                print('Terminate')
+                Terminate_Flag.put(1)
