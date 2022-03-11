@@ -25,16 +25,16 @@ def main():
         
         
         
-#         pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value = 1)
-# 
-#         time.sleep(5)
-#     
-#         pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
-#         pin_sol.high()
-#         time.sleep(5)
-#     
-#         pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
-#         pin_sol.low()
+        pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OPEN_DRAIN, value = 1)
+
+        time.sleep(5)
+    
+        pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+        pin_sol.high()
+        time.sleep(5)
+    
+        pin_sol = pyb.Pin(pyb.Pin.cpu.A9, pyb.Pin.OUT_PP)
+        pin_sol.low()
     
     
         #enableA.low()
@@ -60,7 +60,7 @@ def main():
         
         Closed_loop_Elbow = closedloop.ClosedLoop(0.5, 0)
         Closed_loop_Belt = closedloop.ClosedLoop(0.5, 0)
-        time_start = time.ticks_ms()
+        
         
         time_period = 10 #specifying that the interval we want is 10s
         step_Belt = 2000 # 24500 ticks per rev
@@ -74,6 +74,7 @@ def main():
         while True:
             if Limit_switch_Elbow.value() == 1 and Limit_switch_Belt.value() == 1:
                 break
+        time_start = time.ticks_ms()
         while True:
             time_now = time.ticks_diff(time.ticks_ms(),time_start)
             if time_now >= time_next:
