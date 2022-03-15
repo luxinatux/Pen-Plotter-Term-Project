@@ -7,15 +7,15 @@
 
    @section sec_intro   Introduction
                         This doxygen encapsulates our software design
-                        for our pen plotter term project.Please view the term project page below
-                        for the Software Design and FSM
+                        for our pen plotter term project. Please view the term project page below
+                        for the Software Design and FSMs
    
    @author              Lucas Martos-Repath
    @author              Dylan Ruiz
 
    @copyright           License Info
 
-   @date                February 24, 2022
+   @date                March 15, 2022
    
 
    
