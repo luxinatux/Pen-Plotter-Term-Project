@@ -1,5 +1,5 @@
 """!
-    @file           main.py
+    @file           Elbow_motor.py
     @brief          Practice Control with Elbow Motor 131:1 gear ratio
     @details        Implements a closed loop P-Only controlled step response of a motor with a specified gain value and steady state value.
                     This file is to be put on the Nucleo, and upon restart of the nucleo, it should run this file.

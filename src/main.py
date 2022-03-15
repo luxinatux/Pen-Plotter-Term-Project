@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Mar  2 20:00:23 2022
-
-@author: dylanruiz
+"""!
+    @file           main.py
+    @brief          Executes Pen-Plotter function
+    @details        Implements a multitasking operation to read an hpgl file, convert the coordinates to our relevant encoder ticks and apply FSMs to drive the pen plotter to draw a picture described by the hpgl file. 
+    @author         Dylan Ruiz
+    @author         Lucas Martos-Repath
 """
 import gc
 import pyb
@@ -18,8 +18,9 @@ import math
 
 def task_Encoder():
     """!
-    Task which initializes and updates encoder 1. 
-    Continuously writes the encoder position to the shared variable.
+    Task which initializes and updates both encoders. 
+    Continuously writes the encoder positions to the shared variables.
+    Continuously sets Solenoid actuation.
     """
 
     # Initializes Enc 1 Timer and Channels
@@ -100,9 +101,8 @@ def task_Encoder():
 
 def task_controller():
     """!
-    Task which initializes motor 1. 
-    Controller object updates the duty cycle to the motor and allows closed loop proportional control.
-    Continuously prints the position and time for the data to be processed.
+    Controller object updates the duty cycle to the motors and allows closed loop proportional control.
+    Runs through finite state machine to execute the task of sending duty cycles to the controller task and updating duty cycles for the motors.
     """
 
     # Sets Gain Value of Proportional Controller
@@ -187,6 +187,9 @@ def task_controller():
 
 
 def task_motor():
+    """!
+    Initializes motors and contiuously updates the duty cycles for each motor based on the shared variables.
+    """
     # initialize both Motors
     enableA = pyb.Pin(pyb.Pin.cpu.A10, pyb.Pin.OUT_PP)
     in1_mot = pyb.Pin(pyb.Pin.cpu.B4)
@@ -230,29 +233,6 @@ def task_motor():
                 motor_belt.disable()
         yield(0)
         
-        
-
-
-# def task_Drawing():
-#         draw_state = 0
-#         # Cycles through points and adds them to the shared variables once the Next_Point_Flag is raised
-#         if draw_state == 0:
-
-
-#             if Next_Point_Flag.get() == 1:
-
-#                 if Elbow_position_target.any():
-#                     Elbow_position_target.put(Elbow_position_queue.get())
-#                     Belt_position_target.put(Belt_position_queue.get())
-#                     Solenoid_activation.put(Solenoid_position_queue.get())
-#                     Next_Point_Flag.put(0)
-#                     yield(0)
-#                 else:
-#                     Terminate_Flag.put(1)
-#                     draw_state = 0
-
-#             yield(0)
-
 
 if __name__ == "__main__":
 
@@ -292,17 +272,6 @@ if __name__ == "__main__":
     Execute_Flag = task_share.Share(
         'i', thread_protect=False, name="Execute Flag")
 
-    # Elbow_position_queue = task_share.Queue('i', 2500, thread_protect = False, overwrite = False,
-    #                        name = "Elbow Positions Queue")
-    # Belt_position_queue = task_share.Queue('i', 2500, thread_protect = False, overwrite = False,
-    #                        name = "Belt Positions Queue")
-    # Solenoid_position_queue = task_share.Queue('i', 2500, thread_protect = False, overwrite = False,
-    #                        name = "Belt Positions Queue")
-
-    # Create Task Objects
-    # task_Draw_calc = cotask.Task(task_Drawing, name = 'Task_Drawing_Calcs', priority = 0,
-    #                     period = 50, profile = True, trace = False)
-
     task_controller = cotask.Task(task_controller, name='Task_Controller', priority=2,
                                   period=15, profile=True, trace=False)
 
@@ -312,7 +281,6 @@ if __name__ == "__main__":
     task_encoder = cotask.Task(task_Encoder, name='Task_Encoder', priority=1,
                                period=8, profile=True, trace=False)
 
-    # cotask.task_list.append(task_Draw_calc)
     cotask.task_list.append(task_controller)
     cotask.task_list.append(task_motor)
     cotask.task_list.append(task_encoder)
