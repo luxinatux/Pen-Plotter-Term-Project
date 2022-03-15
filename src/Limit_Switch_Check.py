@@ -21,9 +21,9 @@ if __name__ == '__main__':
     while True:
         #print('{:},{:}'.format(Limit_switch_Belt.value(),Limit_switch_Elbow.value()))
         if Limit_switch_Belt.value() == 1:
-            print("belt")
+            print("Arm")
         if Limit_switch_Elbow.value() == 1:
-             print("window")
+             print("Belt")
         time.sleep(.1)
         count += 1
         if count == 100:

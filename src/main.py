@@ -41,29 +41,29 @@ def task_Encoder():
   
     count = 0
     while True:
+        if Execute_Flag.get() != 1:
+            # If Limit Switch is activated, initializes zeroing process for Belt.
+            if Limit_switch_Belt.value() == 1:
+                Zero_Flag_Belt.put(1)
+                encoder2.set_position(0)
 
-        # If Limit Switch is activated, initializes zeroing process for Belt.
-        if Limit_switch_Belt.value() == 1:
-            Zero_Flag_Belt.put(1)
-            encoder2.set_position(0)
-
-        # If Limit Switch is activated, initializes zeroing process for Elbow.
-        if Limit_switch_Elbow.value() == 1:
-            Zero_Flag_Elbow.put(1)
-            encoder1.set_position(0)
-            
-        if Limit_switch_Elbow.value() != 1:
-            Zero_Flag_Elbow.put(0)
-     
-            
-        if Limit_switch_Belt.value() != 1:
-            Zero_Flag_Belt.put(0)
+            # If Limit Switch is activated, initializes zeroing process for Elbow.
+            if Limit_switch_Elbow.value() == 1:
+                Zero_Flag_Elbow.put(1)
+                encoder1.set_position(0)
+                
+            if Limit_switch_Elbow.value() != 1:
+                Zero_Flag_Elbow.put(0)
          
+                
+            if Limit_switch_Belt.value() != 1:
+                Zero_Flag_Belt.put(0)
+             
         
-        # Only run at beginning of program, when running to home position
-        if Execute_Flag.get() == 0:
+            # Only run at beginning of program, when running to home position
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Elbow.get() == 1:
                 enc_state = 1
+                
         if Terminate_Flag.get() != 1:
             # General Encoder state, constantly updates and activates/deactivates solenoid
             if enc_state == 0:
@@ -131,7 +131,7 @@ def task_controller():
                 controller_state = 1
 
             # Stops both motors if both limit switches activated
-            if Zero_Flag_Belt.get() == 1 and Zero_Flag_Belt.get() == 1:
+            if Zero_Flag_Belt.get() == 1 and Zero_Flag_Elbow.get() == 1:
           
                 controller_state = 3
 
@@ -224,8 +224,12 @@ def task_motor():
             motor_elbow.disable()
             motor_belt.disable()
             
-        if Zero_Flag_Elbow.get() == 1:
-            motor_elbow.disable()
+        if Execute_Flag.get() != 1:   
+            if Zero_Flag_Elbow.get() == 1:
+                motor_elbow.disable()
+                
+            if Zero_Flag_Belt.get() == 1:
+                motor_belt.disable()
         yield(0)
         
         

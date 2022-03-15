@@ -64,7 +64,7 @@ def main():
         
         time_period = 10 #specifying that the interval we want is 10s
         step_Belt = 2000 # 24500 ticks per rev
-        step_Elbow = 4000 # 4192 ticks per rev
+        step_Elbow = 2000 # 4192 ticks per rev
         
         time_next = 0
         encoder1.set_position(0)
