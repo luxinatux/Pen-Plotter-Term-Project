@@ -24,19 +24,20 @@
 */
 var NAVTREE =
 [
-  [ "Pen Plotter Term Project", "index.html", [
+  [ "Pen_Plotter_Term_Project", "index.html", [
     [ "Introduction", "index.html#sec_intro", null ],
     [ "Term Project", "page_1.html", [
       [ "Software Design", "page_1.html#Sftw_ds", [
+        [ "Description of Software", "page_1.html#desc", null ],
         [ "Task Diagram", "page_1.html#tsk_d", null ],
-        [ "Task Diagram", "page_1.html#autotoc_md0", null ],
-        [ "Drawing Task", "page_1.html#FSM_dr", null ],
+        [ "Encoder Task FSM", "page_1.html#FSM_dr", null ],
         [ "Controller Task", "page_1.html#FSM_c", null ]
       ] ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
@@ -51,7 +52,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"annotated.html"
+"Elbow__motor_8py.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

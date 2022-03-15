@@ -38,7 +38,7 @@
                         
                         ## Task Diagram
                         
-   @image html          task_diagram_1.0.png 
+                        ![](Pen_Plotter_Task_Diagram.png)
                         
    
    @subsection FSM_dr   Encoder Task FSM
@@ -47,7 +47,7 @@
                         respective shared variables in order to share it with other tasks. This state also updates the solenoid actuation based on the shared variable being set in the main program. Once the terminate flag gets raised, the encoder FSM changes to state 3 which is the termination
                         state. The encoder releases the solenoid activation at this state. 
                          
-   @image html          drawing_task_FSM.png 
+                        ![](FSM_Encoder.png)
                        
    @subsection FSM_c    Controller Task
                         This Finite State Machine is for the Controller task. State 0 sets both motors duty cycles at -50 until the arm and the belt hit the limit switches. If one hits the limit switch, that motor is disabled but the other motor will continue to run until it has also hit the limit switch.
@@ -55,7 +55,7 @@
                         updates the duty cycles of both motors by implementing a proportional controller. It updates the duty cycle shared variables and raises the next point flag once both encoders reach within a certain threshold of their designated point. This cycle continues once there is no 
                         points left and the terminate flag is raised. Once the terminate flag is raised, controller will move to state 4, which is the terminate state. This state stops both motors and lowers the execute flag.
                         
-   @image html          Controller_task_1.0.png  
+                        ![](FSM_Controller.png)
                         
                                                                 
 '''
