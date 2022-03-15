@@ -24,3 +24,14 @@ Instead of dropping the pen to write, we will be raising the edge of the platfor
 ![Time_Constant](Sled.jpg)
 ![Time_Constant](base.jpg)
 ![Time_Constant](wheel_track.jpg)
+
+## **Hardware Design**
+
+## **Software Design**
+Our system design makes use of cooperative multittasking using three main tasks, the encoder task, controller task and the motor task. First, the main program runs through the seleted hpgl file and converts the coordinate system to the encoder ticks for each one of thte motors. Then the program executes its multitasking to draw the picture from the hpgl file. The encoder tasks periodically updates the encoder positions and solenoid actuation. The controller task updates the duty cycles for each motor using a proportional only controller. The motor task enables both motors, receives the duty cycles from the controller task and applies them to each motor. Once all the points have been executed, all tasks run their termination sequence. 
+
+## **Results**
+
+## **Learning and Recommendations**
+
+## **Additional Links**

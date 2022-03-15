@@ -133,11 +133,11 @@ def task_controller():
             # Stops both motors if both limit switches activated
             if Zero_Flag_Belt.get() == 1 and Zero_Flag_Elbow.get() == 1:
           
-                controller_state = 3
+                controller_state = 2
 
         # Sets controller state when system is ready to run
         if Execute_Flag.get() == 1:
-            controller_state = 4
+            controller_state = 3
 
         # Runs both motors to run at a certain speed until it hits the limit switches
         if controller_state == 0:
@@ -145,18 +145,16 @@ def task_controller():
             Duty_cycle_belt.put(-50)
             yield(0)
 
-        # Stops Belt motor once limit switch is acivated
+        # Stops Belt or Elbow motor once limit switch is acivated
         elif controller_state == 1:
           if Zero_Flag_Belt.get() == 1:
              Duty_cycle_belt.put(0)
           if Zero_Flag_Elbow.get() == 1:
              Duty_cycle_elbow.put(0)
           yield(0)
-
-        # Stops Elbow motor once limit switch is activated
-       
+   
         # Stops both motors if both limit switches activated, Initializes program execution
-        elif controller_state == 3:
+        elif controller_state == 2:
         
             Duty_cycle_elbow.put(0)
             Duty_cycle_belt.put(0)
@@ -166,7 +164,7 @@ def task_controller():
             yield(0)
 
         # General state of controller, Constant updates duty cycles of controller based on position
-        elif controller_state == 4:
+        elif controller_state == 3:
      
             if Terminate_Flag.get() != 1:
                 Duty_cycle_elbow.put(int(Closed_loop_Elbow.update(
@@ -266,23 +264,28 @@ if __name__ == "__main__":
 
     Elbow_position_target = task_share.Share(
         'i', thread_protect=False, name="Elbow Target Position")
+    
     Belt_position_target = task_share.Share(
         'i', thread_protect=False, name="Belt Target Position")
+    
     Solenoid_activation = task_share.Share(
         'i', thread_protect=False, name="Solenoid Activation")
 
     Terminate_Flag = task_share.Share(
         'i', thread_protect=False, name="Terminate Flag")
+    
     Next_Point_Flag = task_share.Share(
         'i', thread_protect=False, name="Next Point Flag")
 
     Duty_cycle_elbow = task_share.Share(
         'i', thread_protect=False, name="Duty Cycle Elbow")
+    
     Duty_cycle_belt = task_share.Share(
         'i', thread_protect=False, name="Duty Cycle Belt")
 
     Zero_Flag_Elbow = task_share.Share(
         'i', thread_protect=False, name="Set Elbow zero flag")
+    
     Zero_Flag_Belt = task_share.Share(
         'i', thread_protect=False, name="Set Belt zero flag")
 
