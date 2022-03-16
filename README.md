@@ -36,3 +36,4 @@ Included Below is a link to our plotter drawing a smiley face(same one as before
 https://youtu.be/C0HX3mLi9cc
 
 Github Pages Link: https://luxinatux.github.io/Pen-Plotter-Term-Project/
+
